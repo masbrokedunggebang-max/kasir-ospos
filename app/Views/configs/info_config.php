@@ -132,7 +132,13 @@
             </div>
 
             <div class="form-group form-group-sm">
-                <?= form_label(lang('Common.return_policy'), 'return_policy', ['class' => 'control-label col-xs-2 required']) ?>
+                <?php
+                $footer_text_label = lang('Common.footer_text');
+                if ($footer_text_label === 'Common.footer_text') {
+                    $footer_text_label = lang('Common.return_policy');
+                }
+                ?>
+                <?= form_label($footer_text_label, 'return_policy', ['class' => 'control-label col-xs-2 required']) ?>
                 <div class="col-xs-6">
                     <?= form_textarea([
                         'name'  => 'return_policy',
@@ -182,7 +188,7 @@
                 address: "<?= lang('Config.address_required') ?>",
                 phone: "<?= lang('Config.phone_required') ?>",
                 email: "<?= lang('Common.email_invalid_format') ?>",
-                return_policy: "<?= lang('Config.return_policy_required') ?>"
+                return_policy: "<?= lang('Config.footer_text_required') !== 'Config.footer_text_required' ? lang('Config.footer_text_required') : lang('Config.return_policy_required') ?>"
             }
         }));
     });
