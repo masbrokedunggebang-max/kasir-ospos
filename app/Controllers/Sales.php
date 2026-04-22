@@ -496,8 +496,10 @@ class Sales extends Secure_Controller
             }
         }
 
-        $item_id_or_number_or_item_kit_or_receipt = $this->request->getPost('item', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        $item_id_or_number_or_item_kit_or_receipt = (string)$this->request->getPost('item', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
         $this->token_lib->parse_barcode($quantity, $price, $item_id_or_number_or_item_kit_or_receipt);
+        $quantity = (string)$quantity;
+        $discount = (string)$discount;
         $mode = $this->sale_lib->get_mode();
         $quantity = ($mode == 'return') ? -$quantity : $quantity;
         $item_location = $this->sale_lib->get_sale_location();
@@ -526,6 +528,8 @@ class Sales extends Secure_Controller
             $print_option = PRINT_ALL; // Always include in list of items on invoice // TODO: This variable is never used in the code
 
             if (!empty($kit_item_id)) {
+                $kit_item_id = (string)$kit_item_id;
+
                 if (!$this->sale_lib->add_item($kit_item_id, $item_location, $quantity, $discount, $discount_type, PRICE_MODE_KIT, $kit_price_option, $kit_print_option, $price)) {
                     $data['error'] = lang('Sales.unable_to_add_item');
                 } else {
@@ -755,6 +759,7 @@ class Sales extends Secure_Controller
 
                 // Save the data to the sales table
                 $data['sale_id_num'] = $this->sale->save_value($sale_id, $data['sale_status'], $data['cart'], $customer_id, $employee_id, $data['comments'], $invoice_number, $work_order_number, $quote_number, $sale_type, $data['payments'], $data['dinner_table'], $tax_details);
+                $data['reference_number'] = $this->_get_reference_number($data['invoice_number'], (int)$data['sale_id_num']);
                 $data['sale_id'] = 'POS ' . $data['sale_id_num'];
 
                 // Resort and filter cart lines for printing
@@ -792,6 +797,7 @@ class Sales extends Secure_Controller
                 $sale_type = SALE_TYPE_WORK_ORDER;
 
                 $data['sale_id_num'] = $this->sale->save_value($sale_id, $data['sale_status'], $data['cart'], $customer_id, $employee_id, $data['comments'], $invoice_number, $work_order_number, $quote_number, $sale_type, $data['payments'], $data['dinner_table'], $tax_details);
+                $data['reference_number'] = $this->_get_reference_number($data['invoice_number'], (int)$data['sale_id_num']);
                 $this->sale_lib->set_suspended_id($data['sale_id_num']);
 
                 $data['cart'] = $this->sale_lib->sort_and_filter_cart($data['cart']);
@@ -821,6 +827,7 @@ class Sales extends Secure_Controller
                 $sale_type = SALE_TYPE_QUOTE;
 
                 $data['sale_id_num'] = $this->sale->save_value($sale_id, $data['sale_status'], $data['cart'], $customer_id, $employee_id, $data['comments'], $invoice_number, $work_order_number, $quote_number, $sale_type, $data['payments'], $data['dinner_table'], $tax_details);
+                $data['reference_number'] = $this->_get_reference_number($data['invoice_number'], (int)$data['sale_id_num']);
                 $this->sale_lib->set_suspended_id($data['sale_id_num']);
 
                 $data['cart'] = $this->sale_lib->sort_and_filter_cart($data['cart']);
@@ -840,6 +847,7 @@ class Sales extends Secure_Controller
             }
 
             $data['sale_id_num'] = $this->sale->save_value($sale_id, $data['sale_status'], $data['cart'], $customer_id, $employee_id, $data['comments'], $invoice_number, $work_order_number, $quote_number, $sale_type, $data['payments'], $data['dinner_table'], $tax_details);
+            $data['reference_number'] = $this->_get_reference_number($data['invoice_number'], (int)$data['sale_id_num']);
 
             $data['sale_id'] = 'POS ' . $data['sale_id_num'];
 
@@ -938,6 +946,16 @@ class Sales extends Secure_Controller
         $this->sale_lib->clear_all();
 
         return $result;
+    }
+
+    /**
+     * Returns the printable sale reference for receipts and searches.
+     */
+    private function _get_reference_number(?string $invoice_number, int $sale_id): string
+    {
+        return !empty($invoice_number)
+            ? (string)$invoice_number
+            : ($sale_id > 0 ? $this->sale->generate_reference_number($sale_id) : '');
     }
 
     /**
@@ -1065,6 +1083,7 @@ class Sales extends Secure_Controller
         $data['sale_id'] = 'POS ' . $sale_id;
         $data['comments'] = $sale_info['comment'];
         $data['invoice_number'] = $sale_info['invoice_number'];
+        $data['reference_number'] = $this->_get_reference_number($data['invoice_number'], $sale_id);
         $data['quote_number'] = $sale_info['quote_number'];
         $data['sale_status'] = $sale_info['sale_status'];
 

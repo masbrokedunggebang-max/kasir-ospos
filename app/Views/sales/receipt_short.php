@@ -10,10 +10,11 @@
  * @var float $payments_total
  * @var float $amount_change
  * @var array $config
+ * @var string $reference_number
  */
 
 $customer_name = isset($customer) && trim((string)$customer) !== '' ? $customer : 'UMUM';
-$reference_number = !empty($invoice_number) ? $invoice_number : $sale_id;
+$reference_number = !empty($reference_number) ? $reference_number : (!empty($invoice_number) ? $invoice_number : $sale_id);
 $highlight_font_size = (int)$config['receipt_font_size'] + 2;
 $total_items = 0.0;
 
@@ -55,7 +56,7 @@ $total_items_text = fmod($total_items, 1.0) === 0.0 ? (string)(int)$total_items 
         <div style="border-top: 1px dashed #000; margin: 6px 0;"></div>
     </div>
 
-    <div id="receipt_items">
+    <div id="receipt_items" style="margin-top: 6px !important;">
         <?php foreach ($cart as $item) {
             if ($item['print_option'] == PRINT_YES) {
                 $item_name = trim($item['name'] . ' ' . $item['attribute_values']);
@@ -71,19 +72,19 @@ $total_items_text = fmod($total_items, 1.0) === 0.0 ? (string)(int)$total_items 
         }
         ?>
         <div style="border-top: 1px dashed #000; margin: 6px 0;"></div>
-        <table style="width: 100%; border-collapse: collapse; text-align: right;">
+        <table style="width: auto; margin-left: auto; border-collapse: separate; border-spacing: 0; text-align: right;">
             <tbody>
                 <tr>
-                    <td style="padding: 1px 10px 1px 0;"><?= esc('TOTAL') ?></td>
-                    <td style="padding: 1px 0; white-space: nowrap;"><?= to_currency($total) ?></td>
+                    <td style="padding: 1px 8px 1px 0; white-space: nowrap; line-height: 1.2;"><?= esc('TOTAL') ?></td>
+                    <td style="padding: 1px 0 1px 20px; white-space: nowrap; line-height: 1.2;"><?= to_currency($total) ?></td>
                 </tr>
                 <tr>
-                    <td style="padding: 1px 10px 1px 0;"><?= esc('BAYAR') ?></td>
-                    <td style="padding: 1px 0; white-space: nowrap;"><?= to_currency($payments_total) ?></td>
+                    <td style="padding: 1px 8px 1px 0; white-space: nowrap; line-height: 1.2;"><?= esc('BAYAR') ?></td>
+                    <td style="padding: 1px 0 1px 20px; white-space: nowrap; line-height: 1.2;"><?= to_currency($payments_total) ?></td>
                 </tr>
                 <tr>
-                    <td style="padding: 1px 10px 1px 0;"><?= esc('KEMBALI') ?></td>
-                    <td style="padding: 1px 0; white-space: nowrap;"><?= to_currency($amount_change) ?></td>
+                    <td style="padding: 1px 8px 1px 0; white-space: nowrap; line-height: 1.2;"><?= esc('KEMBALI') ?></td>
+                    <td style="padding: 1px 0 1px 20px; white-space: nowrap; line-height: 1.2;"><?= to_currency($amount_change) ?></td>
                 </tr>
             </tbody>
         </table>

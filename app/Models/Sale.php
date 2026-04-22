@@ -31,6 +31,10 @@ class Sale extends Model
         'sale_type'
     ];
 
+    private const REFERENCE_CODE_PREFIX = 'R';
+    private const REFERENCE_CODE_MASK = 1515870810;
+    private const REFERENCE_CODE_MIN_LENGTH = 6;
+
     public function __construct()
     {
         parent::__construct();
@@ -378,6 +382,33 @@ class Sale extends Model
     }
 
     /**
+     * Generates a printable reference number for a sale.
+     */
+    public function generate_reference_number(int $sale_id): string
+    {
+        $reference_number = strtoupper(base_convert((string)($sale_id ^ self::REFERENCE_CODE_MASK), 10, 36));
+
+        return self::REFERENCE_CODE_PREFIX . str_pad($reference_number, self::REFERENCE_CODE_MIN_LENGTH, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Decodes a printable reference number back to the sale id.
+     */
+    public function decode_reference_number(string $reference_number): ?int
+    {
+        $reference_number = strtoupper(trim($reference_number));
+
+        if (!preg_match('/^' . self::REFERENCE_CODE_PREFIX . '[0-9A-Z]+$/', $reference_number)) {
+            return null;
+        }
+
+        $encoded_sale_id = base_convert(substr($reference_number, strlen(self::REFERENCE_CODE_PREFIX)), 36, 10);
+        $sale_id = ((int)$encoded_sale_id) ^ self::REFERENCE_CODE_MASK;
+
+        return $sale_id > 0 ? $sale_id : null;
+    }
+
+    /**
      * Gets invoice number by year
      */
     private function get_number_for_year(string $field, string $year = '', int $start_from = 0): int
@@ -404,9 +435,11 @@ class Sale extends Model
             // POS #
             $pieces = explode(' ', $receipt_sale_id);
 
-            if (count($pieces) == 2 && preg_match('/(POS)/i', $pieces[0])) {
-                return $this->exists($pieces[1]);
-            } elseif ($config['invoice_enable']) {
+            if (count($pieces) == 2 && preg_match('/^POS$/i', $pieces[0])) {
+                return $this->exists((int)$pieces[1]);
+            }
+
+            if ($config['invoice_enable']) {
                 $sale_info = $this->get_sale_by_invoice_number($receipt_sale_id);
 
                 if ($sale_info->getNumRows() > 0) {
@@ -414,6 +447,14 @@ class Sale extends Model
 
                     return true;
                 }
+            }
+
+            $sale_id = $this->decode_reference_number($receipt_sale_id);
+
+            if ($sale_id !== null && $this->exists($sale_id)) {
+                $receipt_sale_id = 'POS ' . $sale_id;
+
+                return true;
             }
         }
 
