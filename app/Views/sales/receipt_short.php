@@ -13,7 +13,8 @@
  * @var string $reference_number
  */
 
-$customer_name = isset($customer) && trim((string)$customer) !== '' ? $customer : 'UMUM';
+$has_customer = isset($customer) && trim((string)$customer) !== '';
+$customer_name = $has_customer ? $customer : '';
 $reference_number = !empty($reference_number) ? $reference_number : (!empty($invoice_number) ? $invoice_number : $sale_id);
 $highlight_font_size = (int)$config['receipt_font_size'] + 2;
 $total_items = 0.0;
@@ -40,15 +41,17 @@ $total_items_text = fmod($total_items, 1.0) === 0.0 ? (string)(int)$total_items 
         <?php } ?>
 
         <div id="company_address" style="font-size: <?= esc((string)$highlight_font_size) ?>px;"><?= nl2br(esc($config['address'])) ?></div>
-        <div id="company_phone" style="font-size: <?= esc((string)$highlight_font_size) ?>px;"><?= esc($config['phone']) ?></div>
+        <div id="company_phone" style="font-size: clamp(10px, 3vw, <?= esc((string)$highlight_font_size) ?>px); white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;"><?= esc($config['phone']) ?></div>
     </div>
 
     <div id="receipt_general_info" style="margin-top: 10px;">
-        <div style="display: flex; justify-content: space-between;">
-            <span><?= esc(strtoupper(lang('Sales.customer'))) ?></span>
-            <span><?= esc($customer_name) ?></span>
-        </div>
-        <div style="border-top: 1px dashed #000; margin: 6px 0;"></div>
+        <?php if ($has_customer) { ?>
+            <div style="display: flex; justify-content: space-between;">
+                <span><?= esc(strtoupper(lang('Sales.customer'))) ?></span>
+                <span><?= esc($customer_name) ?></span>
+            </div>
+            <div style="border-top: 1px dashed #000; margin: 6px 0;"></div>
+        <?php } ?>
         <div style="display: flex; justify-content: space-between;">
             <span><?= esc($reference_number) ?></span>
             <span><?= esc($transaction_time) ?></span>
