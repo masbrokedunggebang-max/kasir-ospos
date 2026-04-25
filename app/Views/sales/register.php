@@ -434,8 +434,15 @@ if (isset($success)) {
 
                         if (!$due_payment || ($due_payment && isset($customer))) {    // TODO: $due_payment is not needed because the first clause insures that it will always be true if it gets to this point.  Can be shortened to if (!$due_payment || isset($customer))
                     ?>
-                            <div class="btn btn-sm btn-success pull-right" id="finish_sale_button" tabindex="<?= ++$tabindex ?>">
+                            <?php
+                                $finish_sale_print_tabindex = ++$tabindex;
+                                $finish_sale_tabindex = ++$tabindex;
+                            ?>
+                            <div class="btn btn-sm btn-success pull-right" id="finish_sale_button" tabindex="<?= $finish_sale_tabindex ?>">
                                 <span class="glyphicon glyphicon-ok">&nbsp;</span><?= lang(ucfirst($controller_name) . '.complete_sale') ?>
+                            </div>
+                            <div class="btn btn-sm btn-info pull-right" id="finish_sale_print_button" style="margin-right: 5px;" tabindex="<?= $finish_sale_print_tabindex ?>">
+                                <span class="glyphicon glyphicon-print">&nbsp;</span><?= lang(ucfirst($controller_name) . '.complete_sale') . ' & ' . lang('Common.print') ?>
                             </div>
                     <?php
                         }
@@ -443,6 +450,7 @@ if (isset($success)) {
                     ?>
                 <?php } else { ?>
                     <?= form_open("$controller_name/addPayment", ['id' => 'add_payment_form', 'class' => 'form-horizontal']) ?>
+                        <input type="hidden" name="focus_finish_sale_print" id="focus_finish_sale_print" value="0">
                         <table class="sales_table_100">
                             <tr>
                                 <td><?= lang(ucfirst($controller_name) . '.payment') ?></td>
@@ -489,6 +497,7 @@ if (isset($success)) {
             </div>
 
             <?= form_open("$controller_name/cancel", ['id' => 'buttons_form']) ?>
+            <input type="hidden" name="complete_and_print" id="complete_and_print" value="0">
             <div class="form-group" id="buttons_sale">
                 <div class="btn btn-sm btn-default pull-left" id="suspend_sale_button"><span class="glyphicon glyphicon-align-justify">&nbsp;</span><?= lang(ucfirst($controller_name) . '.suspend_sale') ?></div>
                 <?php if (!$pos_mode && isset($customer)) { // Only show this part if the payment covers the total ?>
@@ -725,14 +734,28 @@ if (isset($success)) {
             });
         });
 
-        $('#finish_sale_button').click(function() {
+        function submit_sale_completion(complete_and_print) {
+            $('#complete_and_print').val(complete_and_print ? '1' : '0');
+            $('#finish_sale_button, #finish_sale_print_button, #finish_invoice_quote_button').addClass('disabled');
             $('#buttons_form').attr('action', "<?= "$controller_name/complete" ?>");
             $('#buttons_form').submit();
+        }
+
+        function submit_add_payment(focus_finish_print) {
+            $('#focus_finish_sale_print').val(focus_finish_print ? '1' : '0');
+            $('#add_payment_form').submit();
+        }
+
+        $('#finish_sale_button').click(function() {
+            submit_sale_completion(false);
+        });
+
+        $('#finish_sale_print_button').click(function() {
+            submit_sale_completion(true);
         });
 
         $('#finish_invoice_quote_button').click(function() {
-            $('#buttons_form').attr('action', "<?= "$controller_name/complete" ?>");
-            $('#buttons_form').submit();
+            submit_sale_completion(false);
         });
 
         $('#suspend_sale_button').click(function() {
@@ -748,7 +771,7 @@ if (isset($success)) {
         });
 
         $('#add_payment_button').click(function() {
-            $('#add_payment_form').submit();
+            submit_add_payment(false);
         });
 
         $('#payment_types').change(check_payment_type).ready(check_payment_type);
@@ -761,15 +784,30 @@ if (isset($success)) {
 
         $('#amount_tendered').keypress(function(event) {
             if (event.which == 13) {
-                $('#add_payment_form').submit();
+                event.preventDefault();
+                submit_add_payment(true);
             }
         });
 
         $('#finish_sale_button').keypress(function(event) {
             if (event.which == 13) {
-                $('#finish_sale_form').submit();
+                event.preventDefault();
+                $('#finish_sale_button').click();
             }
         });
+
+        $('#finish_sale_print_button').keypress(function(event) {
+            if (event.which == 13) {
+                event.preventDefault();
+                $('#finish_sale_print_button').click();
+            }
+        });
+
+        <?php if (!empty($focus_finish_sale_print)) { ?>
+            if ($('#finish_sale_print_button').length) {
+                $('#finish_sale_print_button').focus();
+            }
+        <?php } ?>
 
         dialog_support.init('a.modal-dlg, button.modal-dlg');
 

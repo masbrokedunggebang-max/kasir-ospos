@@ -373,6 +373,8 @@ class Sales extends Secure_Controller
         $data = [];
         $giftcard = model(Giftcard::class);
         $payment_type = $this->request->getPost('payment_type', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        $focus_finish_sale_print = $this->request->getPost('focus_finish_sale_print') == '1';
+        $payment_added = false;
 
         if ($payment_type !== lang('Sales.giftcard')) {
             $rules = ['amount_tendered' => 'trim|required|decimal_locale',];
@@ -412,6 +414,7 @@ class Sales extends Secure_Controller
                     $amount_tendered = min($this->sale_lib->get_amount_due(), $giftcard->get_giftcard_value($giftcard_num));
 
                     $this->sale_lib->add_payment($payment_type, $amount_tendered);
+                    $payment_added = true;
                 }
             } elseif ($payment_type === lang('Sales.rewards')) {
                 $customer_id = $this->sale_lib->get_customer();
@@ -436,6 +439,7 @@ class Sales extends Secure_Controller
                         $amount_tendered = min($this->sale_lib->get_amount_due(), $points);
 
                         $this->sale_lib->add_payment($payment_type, $amount_tendered);
+                        $payment_added = true;
                     }
                 }
             } elseif ($payment_type === lang('Sales.cash')) {
@@ -443,6 +447,7 @@ class Sales extends Secure_Controller
                 $sales_total = $this->sale_lib->get_total(false);
                 $amount_tendered = parse_decimals($this->request->getPost('amount_tendered'));
                 $this->sale_lib->add_payment($payment_type, $amount_tendered);
+                $payment_added = true;
                 $cash_adjustment_amount = $amount_due - $sales_total;
                 if ($cash_adjustment_amount <> 0) {
                     $this->session->set('cash_mode', CASH_MODE_TRUE);
@@ -451,8 +456,11 @@ class Sales extends Secure_Controller
             } else {
                 $amount_tendered = parse_decimals($this->request->getPost('amount_tendered'));
                 $this->sale_lib->add_payment($payment_type, $amount_tendered);
+                $payment_added = true;
             }
         }
+
+        $data['focus_finish_sale_print'] = $focus_finish_sale_print && $payment_added;
 
         $this->_reload($data);
     }
@@ -674,6 +682,7 @@ class Sales extends Secure_Controller
         $data['cur_giftcard_value'] = $this->sale_lib->get_giftcard_remainder();
         $data['cur_rewards_value'] = $this->sale_lib->get_rewards_remainder();
         $data['print_after_sale'] = $this->session->get('sales_print_after_sale');
+        $data['force_print_once'] = $this->request->getPost('complete_and_print') == '1';
         $data['price_work_orders'] = $this->sale_lib->is_price_work_orders();
         $data['email_receipt'] = $this->sale_lib->is_email_receipt();
         $customer_id = $this->sale_lib->get_customer();

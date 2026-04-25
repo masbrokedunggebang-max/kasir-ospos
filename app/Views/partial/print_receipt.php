@@ -2,6 +2,7 @@
 /**
  * @var string $selected_printer
  * @var bool $print_after_sale
+ * @var bool $force_print_once
  * @var array $config
  */
 ?>
@@ -55,15 +56,17 @@
         }
     }
 
-    <?php if ($print_after_sale) { ?>
+    <?php if ($print_after_sale || !empty($force_print_once)) { ?>
         $(window).on('load', (function() {
             // Executes when complete page is fully loaded, including all frames, objects and images
             printdoc();
 
-            // After a delay, return to sales view
-            setTimeout(function() {
-                window.location.href = "<?= site_url('sales') ?>";
-            }, <?= $config['print_delay_autoreturn'] * 1000 ?>);
+            <?php if ($print_after_sale) { ?>
+                // After a delay, return to sales view
+                setTimeout(function() {
+                    window.location.href = "<?= site_url('sales') ?>";
+                }, <?= $config['print_delay_autoreturn'] * 1000 ?>);
+            <?php } ?>
         }));
 
     <?php } ?>

@@ -2,6 +2,7 @@
 /**
  * @var int $sale_id_num
  * @var bool $print_after_sale
+ * @var bool $force_print_once
  * @var array $config
  */
 
@@ -42,7 +43,7 @@ if (isset($error_message)) {
     </script>
 <?php endif; ?>
 
-<?= view('partial/print_receipt', ['print_after_sale' => $print_after_sale, 'selected_printer' => 'receipt_printer']) ?>
+<?= view('partial/print_receipt', ['print_after_sale' => $print_after_sale, 'force_print_once' => !empty($force_print_once), 'selected_printer' => 'receipt_printer']) ?>
 
 <style>
     #debug-icon-link,

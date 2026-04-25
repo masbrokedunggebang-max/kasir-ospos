@@ -17,6 +17,8 @@ $has_customer = isset($customer) && trim((string)$customer) !== '';
 $customer_name = $has_customer ? $customer : '';
 $reference_number = !empty($reference_number) ? $reference_number : (!empty($invoice_number) ? $invoice_number : $sale_id);
 $highlight_font_size = (int)$config['receipt_font_size'] + 2;
+$company_phone_font_size = $highlight_font_size + 4;
+$company_phone_min_font_size = max((int)$config['receipt_font_size'], 10);
 $total_items = 0.0;
 
 foreach ($cart as $item) {
@@ -29,7 +31,7 @@ $total_items_text = fmod($total_items, 1.0) === 0.0 ? (string)(int)$total_items 
 ?>
 
 <div id="receipt_wrapper" style="font-size: <?= esc($config['receipt_font_size']) ?>px;">
-    <div id="receipt_header">
+    <div id="receipt_header" style="margin-bottom: 16px;">
         <?php if ($config['company_logo'] != '') { ?>
             <div id="company_name">
                 <img id="image" src="<?= base_url('uploads/' . esc($config['company_logo'], 'url')) ?>" alt="company_logo">
@@ -41,7 +43,7 @@ $total_items_text = fmod($total_items, 1.0) === 0.0 ? (string)(int)$total_items 
         <?php } ?>
 
         <div id="company_address" style="font-size: <?= esc((string)$highlight_font_size) ?>px;"><?= nl2br(esc($config['address'])) ?></div>
-        <div id="company_phone" style="font-size: clamp(10px, 3vw, <?= esc((string)$highlight_font_size) ?>px); white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;"><?= esc($config['phone']) ?></div>
+        <div id="company_phone" data-base-font-size="<?= esc((string)$company_phone_font_size) ?>" data-min-font-size="<?= esc((string)$company_phone_min_font_size) ?>" style="font-size: <?= esc((string)$company_phone_font_size) ?>px; line-height: 1.1; text-align: center; white-space: nowrap; width: 58mm; min-width: 58mm; max-width: 58mm; margin: 2px auto 4px; overflow: hidden; text-overflow: clip;"><?= esc(trim((string)$config['phone'])) ?></div>
     </div>
 
     <div id="receipt_general_info" style="margin-top: 10px;">
@@ -99,3 +101,40 @@ $total_items_text = fmod($total_items, 1.0) === 0.0 ? (string)(int)$total_items 
         <?= nl2br(esc($config['return_policy'])) ?>
     </div>
 </div>
+
+<script>
+    (function() {
+        const fitCompanyPhone = function() {
+            const phoneEl = document.getElementById('company_phone');
+
+            if (!phoneEl) {
+                return;
+            }
+
+            const baseFontSize = parseFloat(phoneEl.getAttribute('data-base-font-size')) || <?= (float)$company_phone_font_size ?>;
+            const minFontSize = parseFloat(phoneEl.getAttribute('data-min-font-size')) || <?= (float)$company_phone_min_font_size ?>;
+
+            let currentFontSize = baseFontSize;
+            let guard = 0;
+
+            phoneEl.style.fontSize = currentFontSize + 'px';
+            phoneEl.style.letterSpacing = '';
+
+            while (phoneEl.scrollWidth > phoneEl.clientWidth && currentFontSize > minFontSize && guard < 80) {
+                currentFontSize -= 0.5;
+                phoneEl.style.fontSize = currentFontSize + 'px';
+                guard++;
+            }
+
+            if (phoneEl.scrollWidth > phoneEl.clientWidth) {
+                phoneEl.style.letterSpacing = '-0.2px';
+            }
+        };
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', fitCompanyPhone);
+        } else {
+            fitCompanyPhone();
+        }
+    })();
+</script>
