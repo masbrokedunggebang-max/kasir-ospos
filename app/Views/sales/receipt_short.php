@@ -46,7 +46,7 @@ $total_items_text = fmod($total_items, 1.0) === 0.0 ? (string)(int)$total_items 
         <div id="company_phone" data-base-font-size="<?= esc((string)$company_phone_font_size) ?>" data-min-font-size="<?= esc((string)$company_phone_min_font_size) ?>" style="font-size: <?= esc((string)$company_phone_font_size) ?>px; line-height: 1.1; text-align: center; white-space: nowrap; width: 58mm; min-width: 58mm; max-width: 58mm; margin: 2px auto 4px; overflow: hidden; text-overflow: clip;"><?= esc(trim((string)$config['phone'])) ?></div>
     </div>
 
-    <div id="receipt_general_info" style="margin-top: 20px;">
+    <!-- <div id="receipt_general_info" style="margin-top: 20px;">
         <?php if ($has_customer) { ?>
             <div style="display: flex; justify-content: space-between;">
                 <span><?= esc(strtoupper(lang('Sales.customer'))) ?></span>
@@ -59,7 +59,7 @@ $total_items_text = fmod($total_items, 1.0) === 0.0 ? (string)(int)$total_items 
             <span><?= esc($transaction_time) ?></span>
         </div>
         <div style="border-top: 1px dashed #000; margin: 6px 0;"></div>
-    </div>
+    </div> -->
 
     <div id="receipt_items" style="margin-top: 6px !important;">
         <?php foreach ($cart as $item) {
