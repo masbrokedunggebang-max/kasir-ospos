@@ -31,7 +31,7 @@ $total_items_text = fmod($total_items, 1.0) === 0.0 ? (string)(int)$total_items 
 ?>
 
 <div id="receipt_wrapper" style="font-size: <?= esc($config['receipt_font_size']) ?>px;">
-    <div id="receipt_header" style="margin-bottom: 16px;">
+    <div id="receipt_header" style="margin-bottom: 20px;">
         <?php if ($config['company_logo'] != '') { ?>
             <div id="company_name">
                 <img id="image" src="<?= base_url('uploads/' . esc($config['company_logo'], 'url')) ?>" alt="company_logo">
@@ -46,7 +46,7 @@ $total_items_text = fmod($total_items, 1.0) === 0.0 ? (string)(int)$total_items 
         <div id="company_phone" data-base-font-size="<?= esc((string)$company_phone_font_size) ?>" data-min-font-size="<?= esc((string)$company_phone_min_font_size) ?>" style="font-size: <?= esc((string)$company_phone_font_size) ?>px; line-height: 1.1; text-align: center; white-space: nowrap; width: 58mm; min-width: 58mm; max-width: 58mm; margin: 2px auto 4px; overflow: hidden; text-overflow: clip;"><?= esc(trim((string)$config['phone'])) ?></div>
     </div>
 
-    <div id="receipt_general_info" style="margin-top: 10px;">
+    <div id="receipt_general_info" style="margin-top: 20px;">
         <?php if ($has_customer) { ?>
             <div style="display: flex; justify-content: space-between;">
                 <span><?= esc(strtoupper(lang('Sales.customer'))) ?></span>
